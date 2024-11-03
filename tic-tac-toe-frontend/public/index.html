@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Login Page -->
+  <div id="login-container">
+    <h1>Welcome to Tic-Tac-Toe</h1>
+    <form id="login-form">
+      <label for="name">Enter your name:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="opponent-name">Enter opponent's name:</label>
+      <input type="text" id="opponent-name" name="opponent-name" disabled>
+      
+      <label for="player-choice">Choose your player:</label>
+      <select id="player-choice" name="player">
+        <option value="X" selected>X</option>
+        <option value="O">O</option>
+        <option value="---">---</option> <!-- Default for player mode -->
+      </select>
+      
+      <label for="difficulty">Choose difficulty (Only for Computer Game):</label>
+      <select id="difficulty" name="difficulty">
+        <option value="easy" selected>Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+        <option value="---">---</option> <!-- Default for player mode -->
+      </select>
+
+      <!-- New Game Mode Selection -->
+      <label for="game-mode">Choose game mode:</label>
+      <select id="game-mode" name="game-mode">
+        <option value="computer">Play Against Computer</option>
+        <option value="player">Play Against Another Player</option>
+      </select>
+      
+      <button type="submit">Start Game</button>
+    </form>
+  </div>
+
+  <!-- Game Page -->
+  <div id="game-container" style="display: none;">
+    <h1>Tic-Tac-Toe</h1>
+    <!-- Add a display of who is X and who is O -->
+    <div id="player-assignments" style="display: none;">
+      <h2>Player Assignments</h2>
+      <p>You are: <span id="your-symbol"></span></p>
+      <p>Your opponent is: <span id="opponent-symbol"></span></p>
+    </div>
+    <div id="grid">
+      <div class="cell" id="0"></div>
+      <div class="cell" id="1"></div>
+      <div class="cell" id="2"></div>
+      <div class="cell" id="3"></div>
+      <div class="cell" id="4"></div>
+      <div class="cell" id="5"></div>
+      <div class="cell" id="6"></div>
+      <div class="cell" id="7"></div>
+      <div class="cell" id="8"></div>
+    </div>
+    <button id="back-to-login">Back</button>
+    <button id="reset">Reset Game</button>
+    <button id="history-btn">History</button>
+    <div id="status"></div>
+  </div>
+
+  <!-- History Page -->
+  <div id="history-container" style="display: none;">
+    <h1>History of <span id="username-title"></span></h1>
+    <table id="history-table">
+      <thead>
+        <tr>
+          <th>Result</th>
+          <th>Opponent</th>
+          <th>Difficulty</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <!-- Game history rows will be appended here -->
+      </tbody>
+    </table>
+    <button id="back-to-game">Back to Game</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

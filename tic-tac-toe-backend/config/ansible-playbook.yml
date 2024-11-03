@@ -1,0 +1,68 @@
+---
+- name: Deploy Tic-Tac-Toe Microservices and Frontend to Kubernetes
+  hosts: localhost
+  tasks:
+
+    - name: Ensure Kubernetes context is configured
+      shell: |
+        gcloud container clusters get-credentials tic-tac-toe-cluster --region europe-west1
+      register: gke_credentials
+      ignore_errors: yes
+
+    - name: Verify Kubernetes context
+      command: kubectl config current-context
+      register: kube_context
+      ignore_errors: yes
+      failed_when: kube_context.rc != 0
+      when: gke_credentials is succeeded
+
+    # Deploy PostgreSQL Database
+    - name: Deploy PostgreSQL to Kubernetes
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/postgres-deployment.yaml') }}"
+      when: kube_context is succeeded
+
+    # Deploy History Microservice
+    - name: Deploy History Microservice
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/history-deployment.yaml') }}"
+      when: kube_context is succeeded
+
+    # Deploy Play-Computer Microservice
+    - name: Deploy Play-Computer Microservice
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/play-computer-deployment.yaml') }}"
+      when: kube_context is succeeded
+
+    # Deploy Play-Player Microservice
+    - name: Deploy Play-Player Microservice
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/play-player-deployment.yaml') }}"
+      when: kube_context is succeeded
+
+    # Deploy Frontend Service and Deployment
+    - name: Deploy Frontend Service and Deployment
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/frontend-deployment.yaml') }}"
+      when: kube_context is succeeded
+
+    - name: Deploy Frontend Service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../infrastructure/kubernetes/frontend-service.yaml') }}"
+      when: kube_context is succeeded
+
+    # Verify Deployment Status
+    - name: Check Pods status
+      command: kubectl get pods --all-namespaces
+      register: pod_status
+      when: kube_context is succeeded
+
+    - name: Show Pod status
+      debug:
+        var: pod_status.stdout_lines

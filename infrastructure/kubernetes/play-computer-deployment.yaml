@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: play-computer-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: play-computer
+  template:
+    metadata:
+      labels:
+        app: play-computer
+    spec:
+      containers:
+      - name: play-computer
+        image: europe-west1-docker.pkg.dev/agisit-2425-website-98956/backend-repo/play-computer-image:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DATABASE_URL
+          value: "postgres://postgres:password@postgres-service:5432/tictactoe" # DB connection URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: play-computer-service
+spec:
+  type: ClusterIP
+  selector:
+    app: play-computer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

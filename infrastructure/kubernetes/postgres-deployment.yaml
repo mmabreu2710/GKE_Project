@@ -1,0 +1,94 @@
+# PersistentVolumeClaim for PostgreSQL storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # Minimum storage size
+---
+# Secret to store the PostgreSQL password
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  POSTGRES_PASSWORD: cGFzc3dvcmQ=  # Base64-encoded version of 'password'
+---
+# ConfigMap to include the db-config.sql script for database initialization
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-configmap
+data:
+  db-config.sql: |
+    CREATE TABLE IF NOT EXISTS game_history (
+      id SERIAL PRIMARY KEY,
+      player_name VARCHAR(255) NOT NULL,
+      result VARCHAR(50) NOT NULL,
+      opponent VARCHAR(255),
+      difficulty VARCHAR(50),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+---
+# Deployment for the PostgreSQL database with PostgreSQL Exporter
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "tictactoe"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        volumeMounts:
+        # Mount the initialization script into the appropriate folder in the container
+        - mountPath: /docker-entrypoint-initdb.d
+          name: postgres-init-script
+        # Mount a persistent volume for PostgreSQL data
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+          subPath: postgres-data
+          
+      # PostgreSQL Exporter container (sidecar)
+      - name: postgres-exporter
+        image: wrouesnel/postgres_exporter  # PostgreSQL Exporter image
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "postgresql://postgres:password@localhost:5432/tictactoe?sslmode=disable"
+        ports:
+        - containerPort: 9187  # PostgreSQL Exporter listens on port 9187
+
+      volumes:
+      # Volume for the initialization script from the ConfigMap
+      - name: postgres-init-script
+        configMap:
+          name: postgres-init-configmap
+      # Volume for the PostgreSQL data using the PVC
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc

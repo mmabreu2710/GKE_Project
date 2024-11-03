@@ -1,0 +1,191 @@
+# ConfigMap for Grafana to provision Prometheus as a datasource
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource
+  labels:
+    app: grafana
+data:
+  prometheus-datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        orgId: 1
+        url: http://prometheus-service:9090  # URL to access Prometheus within the cluster
+        isDefault: true
+        editable: true
+
+---
+# ConfigMap for Grafana to provision dashboards
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard
+  labels:
+    app: grafana
+data:
+  prometheus-dashboard.json: |
+    {
+      "id": null,
+      "uid": "prometheus-dashboard",
+      "title": "Prometheus Metrics Dashboard",  
+      "tags": [ "prometheus" ],
+      "timezone": "browser",
+      "schemaVersion": 16,
+      "version": 1,
+      "panels": [
+        {
+          "type": "graph",
+          "title": "CPU Usage Rate",
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace='default'}[5m])) by (pod)",
+              "legendFormat": "{{ pod }}",
+              "refId": "A"
+            }
+          ],
+          "datasource": "Prometheus",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+        },
+        {
+          "type": "graph",
+          "title": "Memory Usage",
+          "targets": [
+            {
+              "expr": "sum(container_memory_usage_bytes{namespace='default'}) by (pod)",
+              "legendFormat": "{{ pod }}",
+              "refId": "B"
+            }
+          ],
+          "datasource": "Prometheus",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+        },
+        {
+          "type": "graph",
+          "title": "Network Traffic Rate(Bytes)",
+          "targets": [
+            {
+              "expr": "sum(rate(container_network_receive_bytes_total{namespace='default'}[5m])) by (pod)",
+              "legendFormat": "{{ pod }} Receive",
+              "refId": "D"
+            },
+            {
+              "expr": "sum(rate(container_network_transmit_bytes_total{namespace='default'}[5m])) by (pod)",
+              "legendFormat": "{{ pod }} Transmit",
+              "refId": "E"
+            }
+          ],
+          "datasource": "Prometheus",
+          "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 }
+        },
+        {
+          "type": "graph",
+          "title": "Requests Rate per second",
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total{job=~\"frontend-job|history-job|play-computer-job|play-player-job\"}[5m])) by (job)",
+              "legendFormat": "{{ job }}",
+              "refId": "F"
+            }
+          ],
+          "datasource": "Prometheus",
+          "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 }
+        },
+        {
+          "type": "graph",
+          "title": "Request Latency average",
+          "targets": [
+            {
+              "expr": "avg(http_request_latency_seconds{job=~\"frontend-job|history-job|play-computer-job|play-player-job\"}) by (job)",
+              "legendFormat": "{{ job }}",
+              "refId": "G"
+            }
+          ],
+          "datasource": "Prometheus",
+          "gridPos": { "x": 0, "y": 40, "w": 12, "h": 8 }
+        }
+      ]
+    }
+
+
+---
+# ConfigMap to define dashboard provisioning
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  labels:
+    app: grafana
+data:
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards
+
+---
+# Deployment for Grafana
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: admin  # Set Grafana admin password here
+        volumeMounts:
+        - name: grafana-datasource-volume
+          mountPath: /etc/grafana/provisioning/datasources  # Mount datasource config here
+        - name: grafana-dashboard-volume
+          mountPath: /var/lib/grafana/dashboards  # Mount dashboards here
+        - name: grafana-dashboard-config
+          mountPath: /etc/grafana/provisioning/dashboards/  # Mount dashboard provisioning config here
+      volumes:
+      - name: grafana-datasource-volume
+        configMap:
+          name: grafana-datasource  # Reference the datasource configmap
+      - name: grafana-dashboard-volume
+        configMap:
+          name: grafana-dashboard  # Reference the dashboard configmap
+      - name: grafana-dashboard-config
+        configMap:
+          name: grafana-dashboards-config  # Reference the dashboard config yaml
+
+---
+# Service for Grafana
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: grafana

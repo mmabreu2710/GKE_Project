@@ -1,0 +1,208 @@
+/* General styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .container {
+    text-align: center;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+    font-size: 2.5em;
+    color: #333;
+  }
+  
+  /* Login page styles */
+  #login-container {
+    text-align: center;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  #login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  #login-form label {
+    margin: 10px 0;
+  }
+  
+  #login-form input, #login-form select {
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 1em;
+    width: 100%;
+    max-width: 300px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  #login-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #login-form button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Game page styles (already included in previous versions) */
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    grid-gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .cell {
+    width: 150px;
+    height: 150px;
+    background-color: #fff;
+    border: 2px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    cursor: pointer;
+  }
+  
+  .cell:hover {
+    background-color: #f0f0f0;
+  }
+
+  /* Center the game container */
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Center the reset button */
+#reset {
+  margin-left: 10px;
+  margin-right: 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center; /* Ensures the text inside the button is centered */
+  margin-top: 20px;
+}
+
+#reset:hover {
+  background-color: #45a049;
+}
+
+/* Center the status message (winning/losing text) */
+#status {
+  margin-top: 20px;
+  font-size: 1.5em;
+  color: #333;
+  text-align: center;
+}
+
+/* History page styles */
+#history-container {
+  text-align: center;
+  background-color: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  margin: 20px auto;
+  width: 100%;
+  padding: 100px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+#back-to-game {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+#back-to-game:hover {
+  background-color: #45a049;
+}
+
+#history-btn {
+  width: 150px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center; /* Ensures the text inside the button is centered */
+  margin-top: 20px;
+}
+
+#history-btn:hover {
+  background-color: #45a049;
+}
+
+#back-to-login {
+  width: 150px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+#back-to-login:hover {
+  background-color: #45a049;
+}
+

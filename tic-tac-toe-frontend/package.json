@@ -1,0 +1,13 @@
+{
+  "name": "tic-tac-toe-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^3.0.2",
+    "prom-client": "^15.1.3"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

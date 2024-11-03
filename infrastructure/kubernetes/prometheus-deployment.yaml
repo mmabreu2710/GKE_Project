@@ -1,0 +1,152 @@
+# ConfigMap for Prometheus configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  labels:
+    app: prometheus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: 'frontend-job'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: frontend
+
+      - job_name: 'play-computer-job'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: play-computer
+
+      - job_name: 'play-player-job'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: play-player
+
+      - job_name: 'history-job'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: history
+      # Scrape config for PostgreSQL Exporter
+      - job_name: 'postgres-exporter'
+        static_configs:
+        - targets: ['postgres-exporter-service:9187']
+      
+      - job_name: 'kubernetes-cadvisor'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: http  
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: ${1}:10255  
+          - source_labels: [__meta_kubernetes_node_address_InternalIP]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:10255 
+          - target_label: __metrics_path__
+            replacement: /metrics/cadvisor
+
+
+
+---
+# ServiceAccount for Prometheus
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-sa
+  namespace: default
+
+---
+# ClusterRole for Prometheus permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints", "nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for Prometheus ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: prometheus-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Deployment for Prometheus
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus-sa  # Use the ServiceAccount
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus/
+      volumes:
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-config
+
+---
+# Service for Prometheus
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9090
+      targetPort: 9090
+  selector:
+    app: prometheus

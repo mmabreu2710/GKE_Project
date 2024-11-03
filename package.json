@@ -1,0 +1,17 @@
+{
+  "name": "tic-tac-toe-project",
+  "version": "1.0.0",
+  "description": "Tic Tac Toe game using frontend and backend microservices",
+  "scripts": {
+    "start": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "frontend": "cd tic-tac-toe-frontend && PORT=3001 npm start",
+    "backend": "cd tic-tac-toe-backend/microservices/play-computer && PORT=3000 npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "author": "Martim Abreu"
+}
